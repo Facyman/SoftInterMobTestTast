@@ -9,10 +9,14 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TIlesLib\GroundLayerLibrary.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\GroundLayerLibrary\GroundLayerLibrary.csproj" />
+    <ProjectReference Include="..\ObjectLayerLibrary\ObjectLayerLibrary.csproj" />
   </ItemGroup>
 
 </Project>

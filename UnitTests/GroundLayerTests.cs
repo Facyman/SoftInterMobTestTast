@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
-using TIlesLib;
-using TIlesLib.Enums;
+using GroundLayerLibrary;
+using GroundLayerLibrary.Enums;
 
 namespace TileMapSystem.Tests
 {

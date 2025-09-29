@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TIlesLib\TIlesLib.csproj" />
+    <ProjectReference Include="..\TIlesLib\GroundLayerLibrary.csproj" />
   </ItemGroup>
 
 </Project>

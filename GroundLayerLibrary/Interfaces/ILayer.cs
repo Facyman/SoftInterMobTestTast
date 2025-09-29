@@ -1,4 +1,4 @@
-﻿namespace TIlesLib.Interfaces
+﻿namespace GroundLayerLibrary.Interfaces
 {
     public interface ITiledLayer<TType> where TType: struct
     {

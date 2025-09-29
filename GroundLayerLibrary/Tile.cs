@@ -1,6 +1,6 @@
-﻿using TIlesLib.Enums;
+﻿using GroundLayerLibrary.Enums;
 
-namespace TIlesLib
+namespace GroundLayerLibrary
 {
     public struct Tile(TileTypeEnum type)
     {

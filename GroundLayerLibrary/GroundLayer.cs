@@ -1,7 +1,7 @@
-﻿using TIlesLib.Enums;
-using TIlesLib.Interfaces;
+﻿using GroundLayerLibrary.Enums;
+using GroundLayerLibrary.Interfaces;
 
-namespace TIlesLib
+namespace GroundLayerLibrary
 {
 
     public class GroundLayer : ITiledLayer<TileTypeEnum>

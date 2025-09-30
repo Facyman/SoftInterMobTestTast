@@ -1,4 +1,4 @@
-﻿namespace ObjectLayerLibrary.Enums
+﻿namespace Core.Enums
 {
     public enum GameObjectEventTypeEnum
     {

@@ -1,6 +1,6 @@
-﻿using ObjectLayerLibrary.Enums;
+﻿using Core.Enums;
 
-namespace ObjectLayerLibrary.Models
+namespace Core.Models
 {
     public record GameObjectEvent(
         string ObjectId,

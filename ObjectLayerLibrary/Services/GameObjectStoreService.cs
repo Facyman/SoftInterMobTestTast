@@ -1,5 +1,5 @@
-﻿using ObjectLayerLibrary.Interfaces;
-using ObjectLayerLibrary.Models;
+﻿using Core.Models;
+using ObjectLayerLibrary.Interfaces;
 using System.Collections.Concurrent;
 
 namespace ObjectLayerLibrary.Services

@@ -1,4 +1,4 @@
-﻿namespace ObjectLayerLibrary.Models
+﻿namespace Core.Models
 {
     public struct GameObject(
         string id,

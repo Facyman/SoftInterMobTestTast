@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\CoreLibrary\CoreLibrary.csproj" />
     <ProjectReference Include="..\GroundLayerLibrary\GroundLayerLibrary.csproj" />
     <ProjectReference Include="..\ObjectLayerLibrary\ObjectLayerLibrary.csproj" />
   </ItemGroup>

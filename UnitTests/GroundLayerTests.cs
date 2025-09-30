@@ -1,7 +1,7 @@
-﻿using Core.Options;
+﻿using Core.Enums;
+using Core.Models;
+using Core.Options;
 using GroundLayerLibrary;
-using GroundLayerLibrary.Enums;
-using GroundLayerLibrary.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -18,6 +18,12 @@ namespace UnitTests
             {
                 MapHeight = 1000,
                 MapWidth = 1000,
+                Regions =
+                [
+                    new Region(1, "Северное королевство"),
+                    new Region(2, "Южные земли"),
+                    new Region(3, "Восточная империя"),
+                ]
             };
 
             mockOptions.Setup(x => x.Value).Returns(appSettings);

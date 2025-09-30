@@ -1,4 +1,4 @@
-﻿using ObjectLayerLibrary.Models;
+﻿using Core.Models;
 
 namespace ObjectLayerLibrary.Interfaces
 {

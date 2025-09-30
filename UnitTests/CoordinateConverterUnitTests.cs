@@ -8,40 +8,35 @@ namespace UnitTests
     public class CoordinateConverterServiceTests
     {
         [Fact]
-        public void AllMethods_WithExtremeMapDimensions_HandleCorrectly()
+        public void GeoToTile_ShouldReturnValidValue()
         {
-            // Arrange - Very large map dimensions
+            // Arrange
             var mockOptions = new Mock<IOptions<AppSettings>>();
-            var appSettings = new AppSettings { MapWidth = 1000000, MapHeight = 500000 };
+            var appSettings = new AppSettings { MapWidth = 1000, MapHeight = 1000 };
             mockOptions.Setup(x => x.Value).Returns(appSettings);
             var service = new CoordinateConverterService(mockOptions.Object);
 
-            // Act & Assert - Should not throw and should calculate correctly
-            var geo = service.TileToGeo(500000, 250000);
-            var tile = service.GeoToTile(50.0, 50.0);
-            var dimensions = service.GetSingleTileDimensionsInKm();
+            // Act
+            var geo = service.TileToGeo(50, 50);
 
-            Assert.NotNull(geo);
-            Assert.NotNull(tile);
-            Assert.True(dimensions.width > 0);
-            Assert.True(dimensions.height > 0);
+            // Asset
+            Assert.Equal((5,5), geo);
         }
 
         [Fact]
-        public void Service_WithMinimumValidMapDimensions_WorksCorrectly()
+        public void TileToGeo_ShouldReturnValidValue()
         {
-            // Arrange - Minimum valid dimensions
-            var appSettings = new AppSettings { MapWidth = 1, MapHeight = 1 };
+            // Arrange
+            var appSettings = new AppSettings { MapWidth = 1000, MapHeight = 1000 };
             var mockOptions = new Mock<IOptions<AppSettings>>();
             mockOptions.Setup(x => x.Value).Returns(appSettings);
             var service = new CoordinateConverterService(mockOptions.Object);
 
-            // Act & Assert - Should not throw for valid coordinate
-            Assert.NotNull(service.TileToGeo(0, 0));
-            Assert.NotNull(service.GeoToTile(50.0, 50.0));
+            // Act
+            var tile = service.GeoToTile(5, 5);
 
-            // Should throw for invalid coordinate
-            Assert.Throws<ArgumentOutOfRangeException>(() => service.TileToGeo(1, 1));
+            // Asset
+            Assert.Equal((50, 50), tile);
         }
     }
 }

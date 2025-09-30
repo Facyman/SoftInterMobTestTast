@@ -1,8 +1,8 @@
-﻿using Core.Options;
+﻿using Core.Models;
+using Core.Options;
 using GroundLayerLibrary;
 using Microsoft.Extensions.Options;
 using Moq;
-using ObjectLayerLibrary.Models;
 using ObjectLayerLibrary.Services;
 using StackExchange.Redis;
 
@@ -17,7 +17,17 @@ namespace UnitTests
         {
             var redisConnectionString = "localhost:6379";
             var mockOptions = new Mock<IOptions<AppSettings>>();
-            var appSettings = new AppSettings();
+            var appSettings = new AppSettings()
+            {
+                MapHeight = 1000,
+                MapWidth = 1000,
+                Regions =
+                [
+                    new Region(1, "Северное королевство"),
+                    new Region(2, "Южные земли"),
+                    new Region(3, "Восточная империя"),
+                ]
+            };
 
             mockOptions.Setup(x => x.Value).Returns(appSettings);
 

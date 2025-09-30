@@ -32,7 +32,7 @@ namespace ObjectLayerLibrary.Services
         public (double x, double y) GeoToTile(double lon, double lat)
         {
             double normalizedX = (lon - GeoMinLon) / (GeoMaxLon - GeoMinLon);
-            double normalizedY = (GeoMaxLat - lat) / (GeoMaxLat - GeoMinLat);
+            double normalizedY = (lat - GeoMinLat) / (GeoMaxLat - GeoMinLat);
 
             double x = normalizedX * MapWidth;
             double y = normalizedY * MapHeight;

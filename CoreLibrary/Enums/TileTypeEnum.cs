@@ -1,4 +1,4 @@
-﻿namespace GroundLayerLibrary.Enums
+﻿namespace Core.Enums
 {
     public enum TileTypeEnum : byte
     {

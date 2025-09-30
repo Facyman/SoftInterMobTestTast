@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\GroundLayerLibrary\GroundLayerLibrary.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-﻿using GroundLayerLibrary.Enums;
+﻿using Core.Enums;
 
 namespace GroundLayerLibrary.Interfaces
 {

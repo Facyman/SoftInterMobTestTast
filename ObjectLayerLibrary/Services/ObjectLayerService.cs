@@ -3,6 +3,7 @@ using Core.Models;
 using GroundLayerLibrary.Interfaces;
 using ObjectLayerLibrary.Interfaces;
 using StackExchange.Redis;
+using System.Reflection.Metadata;
 using System.Text.Json;
 
 namespace ObjectLayerLibrary.Services
@@ -73,7 +74,10 @@ namespace ObjectLayerLibrary.Services
 
             try
             {
-                await _db.GeoRemoveAsync(GeoIndexKey, objectId);
+                await _db.GeoRemoveAsync(GeoIndexKey, LeftTopCorner + objectId);
+                await _db.GeoRemoveAsync(GeoIndexKey, LeftBottomCorner + objectId);
+                await _db.GeoRemoveAsync(GeoIndexKey, RightTopCorner + objectId);
+                await _db.GeoRemoveAsync(GeoIndexKey, RightBottomCorner + objectId);
             }
             catch
             {

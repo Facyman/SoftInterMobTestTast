@@ -11,7 +11,7 @@ namespace ObjectLayerLibrary.Services
         IConnectionMultiplexer redis,
         ICoordinateConverterService coordinateConverterService,
         IObjectStoreService<GameObject> store,
-        ITiledLayer tiledLayer) : IObjectLayerService<GameObject>
+        ITiledLayerService tiledLayer) : IObjectLayerService<GameObject>
     {
         private readonly IDatabase _db = redis.GetDatabase();
 
@@ -86,7 +86,7 @@ namespace ObjectLayerLibrary.Services
             return true;
         }
 
-        public async Task<GameObject?> GetObjectByCoordinates(int x, int y)
+        public async Task<GameObject?> GetObjectByCoordinatesAsync(int x, int y)
         {
             var (lon, lat) = coordinateConverterService.TileToGeo(x, y);
             var nearbyObjects = await _db.GeoSearchAsync(
@@ -122,9 +122,16 @@ namespace ObjectLayerLibrary.Services
                 shape: new GeoSearchBox(width * areaWidth, height * areaHeight, GeoUnit.Kilometers),
                 count: count);
 
-            foreach (var geoResult in nearbyObjects)
+
+            var ids = new string[nearbyObjects.Length];
+            for (int i = 0; i < nearbyObjects.Length; i++)
             {
-                var objectId = geoResult.Member.ToString().Substring(3);
+                ids[i] = nearbyObjects[i].Member.ToString().Substring(3);
+            }
+
+            foreach (var geoResult in ids.Distinct())
+            {
+                var objectId = geoResult;
                 var gameObject = GetObjectById(objectId);
 
                 if (gameObject.HasValue)

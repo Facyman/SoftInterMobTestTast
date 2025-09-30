@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace GroundLayerLibrary
 {
 
-    public class GroundLayerService : ITiledLayer
+    public class GroundLayerService : ITiledLayerService
     {
         private readonly int _mapWidth;
         private readonly int _mapHeight;

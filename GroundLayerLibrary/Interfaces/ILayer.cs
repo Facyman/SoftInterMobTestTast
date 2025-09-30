@@ -2,7 +2,7 @@
 
 namespace GroundLayerLibrary.Interfaces
 {
-    public interface ITiledLayer
+    public interface ITiledLayerService
     {
         public TileTypeEnum GetTileType(int x, int y);
         public void SetTileType(int x, int y, TileTypeEnum type);

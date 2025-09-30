@@ -1,6 +1,7 @@
 ﻿using Core.Models;
 using Core.Options;
 using GroundLayerLibrary;
+using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Extensions.Options;
 using Moq;
 using ObjectLayerLibrary.Services;
@@ -9,9 +10,10 @@ using StackExchange.Redis;
 
 namespace UnitTests
 {
-    public class ObjectLayerServiceTests
+    public class ObjectLayerServiceTests : IDisposable
     {
         private readonly ObjectLayerService _service;
+        private readonly ConnectionMultiplexer _redis;
 
         public ObjectLayerServiceTests()
         {
@@ -31,11 +33,13 @@ namespace UnitTests
 
             mockOptions.Setup(x => x.Value).Returns(appSettings);
 
-            var redis = ConnectionMultiplexer.Connect(redisConnectionString);
+            _redis = ConnectionMultiplexer.Connect(redisConnectionString);
             var coordinatesService = new CoordinateConverterService(mockOptions.Object);
             var groundLayerService = new GroundLayerService(mockOptions.Object);
             var storeService = new GameObjectStoreService();
-            _service = new ObjectLayerService(redis, coordinatesService, storeService, groundLayerService);
+            _service = new ObjectLayerService(_redis, coordinatesService, storeService, groundLayerService);
+
+            CleanupGameDataAsync(_redis).GetAwaiter().GetResult();
         }
 
         [Fact]
@@ -56,15 +60,15 @@ namespace UnitTests
         public async Task GetObjectAt_ObjectExists_ReturnsObject()
         {
             // Arrange
-            var gameObject = new GameObject("test-2", 50, 50, 4, 4);
+            var gameObject = new GameObject("test-3", 50, 50, 4, 4);
             await _service.AddObjectAsync(gameObject);
 
             // Act
-            var result = await _service.GetObjectByCoordinates(50, 50);
+            var result = await _service.GetObjectByCoordinatesAsync(50, 50);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("test-2", result?.Id);
+            Assert.Equal("test-3", result?.Id);
         }
 
         [Fact]
@@ -124,6 +128,28 @@ namespace UnitTests
             // Assert
             Assert.True(completedTask == eventCompleted.Task, "Event was not triggered within 5 second");
             Assert.True(eventCompleted.Task.Result);
+        }
+        public void Dispose()
+        {
+            CleanupGameDataAsync(_redis).GetAwaiter().GetResult();
+            _redis.Dispose();
+        }
+
+        public async Task CleanupGameDataAsync(IConnectionMultiplexer redis)
+        {
+            var db = redis.GetDatabase();
+            var server = redis.GetServer(redis.GetEndPoints().First());
+
+            var patterns = new[] { "object*" };
+
+            foreach (var pattern in patterns)
+            {
+                var keys = server.Keys(pattern: pattern).ToArray();
+                if (keys.Length > 0)
+                {
+                    await db.KeyDeleteAsync(keys);
+                }
+            }
         }
     }
 }

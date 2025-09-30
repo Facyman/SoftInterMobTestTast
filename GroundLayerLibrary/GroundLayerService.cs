@@ -1,31 +1,44 @@
-﻿using GroundLayerLibrary.Enums;
+﻿using Core.Options;
+using GroundLayerLibrary.Enums;
 using GroundLayerLibrary.Interfaces;
 using GroundLayerLibrary.Models;
+using Microsoft.Extensions.Options;
 
 namespace GroundLayerLibrary
 {
 
-    public class GroundLayer : ITiledLayer<TileTypeEnum>
+    public class GroundLayerService : ITiledLayer
     {
-        private readonly Tile[] _tiles;
+        private readonly int _mapWidth;
+        private readonly int _mapHeight;
+        private Tile[] _tiles;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-        public int Width { get; } // x
-        public int Height { get; } // y
+        public int Width { get; private set; } // x
+        public int Height { get; private set; } // y
         public int TotalTiles => Width * Height;
 
-        public GroundLayer(int width, int height)
+        public GroundLayerService(IOptions<AppSettings> options)
         {
-            if (width <= 0) throw new ArgumentException("Width must be positive", nameof(width));
-            if (height <= 0) throw new ArgumentException("Height must be positive", nameof(height));
+            _mapWidth = options?.Value?.MapWidth ?? throw new ArgumentNullException(nameof(_mapWidth));
+            _mapHeight = options?.Value?.MapHeight ?? throw new ArgumentNullException(nameof(_mapHeight));
 
-            Width = width;
-            Height = height;
-            _tiles = new Tile[width * height];
+            if (_mapWidth <= 0) throw new ArgumentException("Width must be positive", nameof(_mapWidth));
+            if (_mapHeight <= 0) throw new ArgumentException("Height must be positive", nameof(_mapHeight));
+
+            Width = _mapWidth;
+            Height = _mapHeight;
+
+            _tiles = new Tile[Width * Height];
         }
 
-        public GroundLayer(Tile[,] tiles) : this(tiles.GetLength(1), tiles.GetLength(0))
+        public void SetTilesArea(Tile[,] tiles)
         {
             ArgumentNullException.ThrowIfNull(tiles);
+
+            Width = tiles.GetLength(1);
+            Height = tiles.GetLength(0);
+
+            _tiles = new Tile[Width * Height];
 
             SetTilesArea(0, 0, tiles);
         }

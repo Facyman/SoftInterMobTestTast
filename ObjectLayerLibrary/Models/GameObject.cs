@@ -14,12 +14,6 @@
         public int Width { get; set; } = width;
         public int Height { get; set; } = height;
 
-        public bool ContainsPoint(int pointX, int pointY)
-        {
-            return pointX >= X && pointX < X + Width &&
-                   pointY >= Y && pointY < Y + Height;
-        }
-
         public bool IntersectsWith(int areaX, int areaY, int areaWidth, int areaHeight)
         {
             return X < areaX + areaWidth && X + Width > areaX &&

@@ -1,4 +1,5 @@
-﻿using Core.Options;
+﻿
+using Core.Options;
 using GroundLayerLibrary;
 using GroundLayerLibrary.Enums;
 using GroundLayerLibrary.Interfaces;
@@ -28,10 +29,9 @@ public class Program
                 services.Configure<AppSettings>(
                     context.Configuration.GetSection("AppSettings"));
 
-                services.AddSingleton<ITiledLayer<TileTypeEnum>, GroundLayer>();
+                services.AddSingleton<ITiledLayer, GroundLayerService>();
                 services.AddSingleton<ICoordinateConverterService, CoordinateConverterService>();
                 services.AddSingleton<IObjectStoreService<GameObject>, GameObjectStoreService>();
-
                 services.AddSingleton<IConnectionMultiplexer>(sp =>
                 {
                     var configuration = sp.GetRequiredService<IConfiguration>();

@@ -1,4 +1,5 @@
-﻿using ObjectLayerLibrary.Enums;
+﻿using GroundLayerLibrary.Interfaces;
+using ObjectLayerLibrary.Enums;
 using ObjectLayerLibrary.Interfaces;
 using ObjectLayerLibrary.Models;
 using StackExchange.Redis;
@@ -9,22 +10,43 @@ namespace ObjectLayerLibrary.Services
     public class ObjectLayerService(
         IConnectionMultiplexer redis,
         ICoordinateConverterService coordinateConverterService,
-        IObjectStoreService<GameObject> store)
+        IObjectStoreService<GameObject> store,
+        ITiledLayer tiledLayer) : IObjectLayerService
     {
         private readonly IDatabase _db = redis.GetDatabase();
 
         private const string GeoIndexKey = "objects:geo";
         private const string ObjectDataKeyPrefix = "object:";
         private const string ObjectEventsChannel = "object-events";
+        private const int MinminalRadiusToFindPoint = 1; //km
+        private const string LeftTopCorner = "lt_";
+        private const string LeftBottomCorner = "lb_";
+        private const string RightTopCorner = "rt_";
+        private const string RightBottomCorner = "rb_";
 
         public async Task<bool> AddObjectAsync(GameObject gameObject)
         {
-            double centerX = gameObject.X + gameObject.Width / 2.0;
-            double centerY = gameObject.Y + gameObject.Height / 2.0;
-            var coordinates = coordinateConverterService.TileToGeo(centerX, centerY);
+            var canPlace = tiledLayer.CanPlaceObjectInArea(gameObject.X, gameObject.Y, gameObject.X + gameObject.Width, gameObject.Y + gameObject.Height);
+            if (!canPlace)
+            {
+                return false;
+            }
+            var existing = (await GetObjectsInAreaAsync(gameObject.X, gameObject.Y, gameObject.Width, gameObject.Height, 1)).Count != 0;
+            if (existing)
+            {
+                return false;
+            }
+
+            var (ltlon, ltlat) = coordinateConverterService.TileToGeo(gameObject.X, gameObject.Y);
+            var (lblon, lblat) = coordinateConverterService.TileToGeo(gameObject.X, gameObject.Y + gameObject.Height);
+            var (rtlon, rtlat) = coordinateConverterService.TileToGeo(gameObject.X + gameObject.Width, gameObject.Y);
+            var (rblon, rblat) = coordinateConverterService.TileToGeo(gameObject.X + gameObject.Width, gameObject.Y + gameObject.Height);
             try
             {
-                await _db.GeoAddAsync(GeoIndexKey, coordinates.lon, coordinates.lat, gameObject.Id);
+                await _db.GeoAddAsync(GeoIndexKey, ltlon, ltlat, LeftTopCorner + gameObject.Id);
+                await _db.GeoAddAsync(GeoIndexKey, lblon, lblat, LeftBottomCorner + gameObject.Id);
+                await _db.GeoAddAsync(GeoIndexKey, rtlon, rtlat, RightTopCorner + gameObject.Id);
+                await _db.GeoAddAsync(GeoIndexKey, rblon, rblat, RightBottomCorner + gameObject.Id);
             }
             catch
             {
@@ -36,7 +58,7 @@ namespace ObjectLayerLibrary.Services
             return true;
         }
 
-        public GameObject? GetObjectByIdAsync(string objectId)
+        public GameObject? GetObjectById(string objectId)
         {
             var exists = store.TryGet(GetObjectDataKey(objectId), out var obj);
             if (!exists) return null;
@@ -46,7 +68,7 @@ namespace ObjectLayerLibrary.Services
 
         public async Task<bool> RemoveObjectAsync(string objectId)
         {
-            var existingObject = GetObjectByIdAsync(objectId);
+            var existingObject = GetObjectById(objectId);
             if (existingObject == null) return false;
 
             try
@@ -55,44 +77,59 @@ namespace ObjectLayerLibrary.Services
             }
             catch
             {
-                store.Remove(GetObjectDataKey(objectId));
-                await PublishEventAsync(GameObjectEventTypeEnum.Deleted, objectId);
                 return false;
             }
+
+            store.Remove(GetObjectDataKey(objectId));
+            await PublishEventAsync(GameObjectEventTypeEnum.Deleted, objectId);
 
             return true;
         }
 
-        public async Task<bool> IsObjectInAreaAsync(string objectId, int areaX, int areaY, int areaWidth, int areaHeight)
+        public async Task<GameObject?> GetObjectByCoordinates(int x, int y)
         {
-            var gameObject = GetObjectByIdAsync(objectId);
-            if (gameObject == null) return false;
+            var (lon, lat) = coordinateConverterService.TileToGeo(x, y);
+            var nearbyObjects = await _db.GeoSearchAsync(
+                key: GeoIndexKey,
+                longitude: lon,
+                latitude: lat,
+                shape: new GeoSearchCircle(MinminalRadiusToFindPoint, GeoUnit.Kilometers),
+                count: 1,
+                demandClosest: true);
 
-            return ((GameObject)gameObject).IntersectsWith(areaX, areaY, areaWidth, areaHeight);
+            if (nearbyObjects.Length == 0)
+            {
+                return null;
+            }
+            var objectId = nearbyObjects.First().Member.ToString().Substring(3);
+            return GetObjectById(objectId);
         }
 
-        public async Task<List<GameObject>> GetObjectsInAreaAsync(int areaX, int areaY, int areaWidth, int areaHeight)
+        public async Task<List<GameObject>> GetObjectsInAreaAsync(int x, int y, int areaWidth, int areaHeight, int count = -1)
         {
             var result = new List<GameObject>();
 
-            double centerX = areaX + areaWidth / 2.0;
-            double centerY = areaY + areaHeight / 2.0;
-            var (centerLon, centerLat) = coordinateConverterService.TileToGeo(centerX, centerY);
+            double centerX = x + areaWidth / 2;
+            double centerY = y + areaHeight / 2;
+            var (lon, lat) = coordinateConverterService.TileToGeo(centerX, centerY);
 
-            double diagonal = Math.Sqrt(areaWidth * areaWidth + areaHeight * areaHeight);
-            double searchRadius = coordinateConverterService.CalculateGeoRadius((int)diagonal + 10);
+            var (width, height) = coordinateConverterService.GetSingleTileDimensionsInKm();
 
-            var nearbyObjects = await _db.GeoRadiusAsync(
-                GeoIndexKey, centerLon, centerLat, searchRadius, GeoUnit.Meters);
+            var nearbyObjects = await _db.GeoSearchAsync(
+                key: GeoIndexKey,
+                longitude: lon,
+                latitude: lat,
+                shape: new GeoSearchBox(width * areaWidth, height * areaHeight, GeoUnit.Kilometers),
+                count: count);
 
             foreach (var geoResult in nearbyObjects)
             {
-                var objectId = geoResult.Member.ToString();
-                var gameObject = GetObjectByIdAsync(objectId);
+                var objectId = geoResult.Member.ToString().Substring(3);
+                var gameObject = GetObjectById(objectId);
 
-                if (gameObject != null && ((GameObject)gameObject).IntersectsWith(areaX, areaY, areaWidth, areaHeight))
+                if (gameObject.HasValue)
                 {
-                    result.Add((GameObject)gameObject);
+                    result.Add(gameObject.Value);
                 }
             }
 

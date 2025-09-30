@@ -4,6 +4,6 @@
     {
         public (double lon, double lat) TileToGeo(double x, double y);
         public (double x, double y) GeoToTile(double lon, double lat);
-        public double CalculateGeoRadius(int tileRadius);
+        public (double width, double height) GetSingleTileDimensionsInKm();
     }
 }

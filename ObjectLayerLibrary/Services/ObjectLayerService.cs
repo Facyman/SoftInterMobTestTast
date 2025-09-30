@@ -11,7 +11,7 @@ namespace ObjectLayerLibrary.Services
         IConnectionMultiplexer redis,
         ICoordinateConverterService coordinateConverterService,
         IObjectStoreService<GameObject> store,
-        ITiledLayer tiledLayer) : IObjectLayerService
+        ITiledLayer tiledLayer) : IObjectLayerService<GameObject>
     {
         private readonly IDatabase _db = redis.GetDatabase();
 

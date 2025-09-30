@@ -32,6 +32,7 @@ public class Program
                 services.AddSingleton<ITiledLayer, GroundLayerService>();
                 services.AddSingleton<ICoordinateConverterService, CoordinateConverterService>();
                 services.AddSingleton<IObjectStoreService<GameObject>, GameObjectStoreService>();
+                services.AddSingleton<IObjectLayerService<GameObject>, ObjectLayerService>();
                 services.AddSingleton<IConnectionMultiplexer>(sp =>
                 {
                     var configuration = sp.GetRequiredService<IConfiguration>();

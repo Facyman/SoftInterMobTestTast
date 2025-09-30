@@ -1,12 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ObjectLayerLibrary.Models;
 
 namespace ObjectLayerLibrary.Interfaces
 {
-    public interface IObjectLayerService
+    public interface IObjectLayerService<T> where T : struct
     {
+        public Task<bool> AddObjectAsync(T gameObject);
+
+        public T? GetObjectById(string objectId);
+
+        public  Task<bool> RemoveObjectAsync(string objectId);
+
+        public Task<T?> GetObjectByCoordinates(int x, int y);
+
+        public Task<List<T>> GetObjectsInAreaAsync(int x, int y, int areaWidth, int areaHeight, int count = -1);
+
+        public Task SubscribeToEventsAsync(Func<GameObjectEvent, Task> handler);
     }
 }
